@@ -1,6 +1,6 @@
 import { DependencyService } from './../dependency/dependency.service';
 import { Component, OnInit } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, Subject, throwError } from 'rxjs';
 
 @Component({
   selector: 'app-async-example',
@@ -9,6 +9,8 @@ import { Observable, throwError } from 'rxjs';
 })
 export class AsyncExampleComponent implements OnInit {
   name: string = '';
+  subjectName: Subject<string> = new Subject<string>();
+
   constructor(private ds: DependencyService) {}
 
   ngOnInit(): void {}
@@ -57,5 +59,22 @@ export class AsyncExampleComponent implements OnInit {
         observer.complete();
       }, 1000);
     });
+  }
+
+  subjectExample(name: string): void {
+    this.subjectName.next(name);
+  }
+
+  sayHiObservable(name: string): Observable<string> {
+    return this.ds.observableExample().pipe(
+      catchError(() => throwError('service timeout')),
+      map((result) => `${result}, ${name}!`)
+    );
+  }
+
+  setNameAfterMinute(name: string): void {
+    setTimeout(() => {
+      this.name = name;
+    }, 60000);
   }
 }

@@ -2,6 +2,7 @@ import { DependencyService } from './../dependency/dependency.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AsyncExampleComponent } from './async-example.component';
+import { map, Observable, of, throwError } from 'rxjs';
 
 describe('AsyncExampleComponent', () => {
   let component: AsyncExampleComponent;
@@ -9,6 +10,7 @@ describe('AsyncExampleComponent', () => {
 
   const fakeDependencyService = jasmine.createSpyObj('fakeDepService', [
     'asyncExample',
+    'observableExample',
   ]);
 
   beforeEach(async () => {
@@ -118,5 +120,39 @@ describe('AsyncExampleComponent', () => {
       expect(error).toBe('no name');
       done();
     });
+  });
+
+  it('subjecExample return Name from class - callBack Done', (done) => {
+    component.subjectName.subscribe((result) => {
+      expect(result).toBe('Giku');
+      done();
+    });
+    component.subjectExample('Giku');
+  });
+
+  it('sayHiObservable return hello with specific name - callBack Done', (done) => {
+    fakeDependencyService.observableExample.and.returnValue(of('Hello'));
+    component.sayHiObservable('Dan').subscribe((result) => {
+      expect(result).toBe('Hello, Dan!');
+      done();
+    });
+  });
+
+  it('sayHiObservable ERROR return  - callBack Done', (done) => {
+    fakeDependencyService.observableExample.and.returnValue(
+      throwError('service timeout')
+    );
+    component.sayHiObservable('Dan').subscribe(undefined, (error) => {
+      expect(error).toBe('service timeout');
+      done();
+    });
+  });
+
+  it('setNameAfterMinute return name after 1 min - clock()', () => {
+    jasmine.clock().install();
+    component.setNameAfterMinute(' Dai Foiala');
+    jasmine.clock().tick(60000);
+    expect(component.name).toBe(' Dai Foiala');
+    jasmine.clock().uninstall();
   });
 });
